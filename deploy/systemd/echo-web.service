@@ -1,0 +1,25 @@
+[Unit]
+Description=Echo Enterprise Django web service
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=echo
+Group=echo
+WorkingDirectory=/opt/echo/current
+EnvironmentFile=/etc/echo/echo.env
+ExecStart=/opt/echo/venv/bin/gunicorn config.wsgi:application --bind 127.0.0.1:8000 --workers 4 --threads 2 --timeout 120 --access-logfile - --error-logfile -
+ExecReload=/bin/kill -s HUP $MAINPID
+KillSignal=SIGQUIT
+TimeoutStopSec=30
+Restart=on-failure
+RestartSec=5
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/echo/current/media /opt/echo/current/staticfiles /var/log/echo
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,69 @@
+{% load static %}
+<section class="voice-workspace" data-voice-workspace aria-labelledby="voice-workspace-title">
+  <div class="voice-stage">
+    <div class="voice-state-topline">
+      <div><span class="voice-state-dot" data-voice-state-dot></span><span data-voice-state-label>Starting</span><small data-microphone-status>Microphone is not active</small></div>
+      <div class="voice-stage-actions voice-lifecycle-controls" role="group" aria-label="Voice lifecycle controls"><button type="button" class="quiet-action js-voice-toggle"><svg><use href="{% static 'icons.svg' %}#mic"></use></svg>Activate Voice</button><button type="button" class="quiet-action js-voice-disable" disabled>Disable Voice</button><button type="button" class="quiet-action danger-action js-voice-shutdown" disabled>Shutdown Voice</button><button type="button" class="quiet-action js-stop-current-task">Stop Task</button></div>
+    </div>
+    <div class="voice-presence-field" data-voice-visual-state="starting">
+      <div class="voice-field-lines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <button type="button" class="voice-primary-control js-voice-toggle" aria-label="Activate voice">
+        <span class="voice-control-rings" aria-hidden="true"><i></i><i></i><i></i></span>
+        <svg><use href="{% static 'icons.svg' %}#mic"></use></svg>
+      </button>
+      <div class="voice-stage-copy"><span class="eyebrow">Echo Voice</span><h2 id="voice-workspace-title" data-voice-prompt>Starting voice</h2><p data-voice-guidance>Echo starts in wake-word mode, becomes active when you say “Echo” or select Activate Voice, and returns to wake-word mode after inactivity.</p></div>
+    </div>
+    <div class="live-transcript" aria-live="polite" aria-atomic="false">
+      <span>Live transcript</span>
+      <p data-live-transcript>Nothing heard yet.</p>
+    </div>
+    <div class="voice-turn-stream" data-voice-turn-stream>
+      {% for item in voice.transcripts reversed %}<article class="voice-turn user-turn" data-transcript-id="{{ item.id }}"><small>You · {{ item.created_at|date:'M j, g:i A' }}</small><p>{{ item.text }}</p>{% if item.memory_status == 'pending' %}<div class="memory-decision" data-memory-decision="{{ item.id }}"><span>Memory candidate</span><button type="button" data-memory-action="approve">Save</button><button type="button" data-memory-action="reject">Discard</button></div>{% endif %}</article>{% if item.response_content %}<article class="voice-turn echo-turn"><small>Echo{% if item.response_route %} · {{ item.response_route }}{% endif %}</small><p>{{ item.response_content|linebreaksbr }}</p></article>{% endif %}{% endfor %}
+    </div>
+    <form class="voice-text-composer js-voice-text-form">
+      <label class="sr-only" for="voice-text-input">Continue this voice conversation with text</label>
+      <textarea id="voice-text-input" rows="1" placeholder="Type to continue the same conversation…"></textarea>
+      <button type="submit" aria-label="Send text to this voice conversation"><svg><use href="{% static 'icons.svg' %}#arrow-up"></use></svg></button>
+    </form>
+  </div>
+
+  <aside class="voice-control-panel">
+    <section>
+      <div class="voice-panel-heading"><div><span class="eyebrow">Runtime</span><h3>Voice readiness</h3></div><span class="runtime-status" data-voice-runtime-status>Checking browser</span></div>
+      <dl class="voice-readiness-list">
+        <div><dt>Microphone</dt><dd data-readiness-microphone>Not requested</dd></div>
+        <div><dt>Speech recognition</dt><dd data-readiness-stt>Detecting</dd></div>
+        <div><dt>Speech output</dt><dd data-readiness-tts>Detecting</dd></div>
+        <div><dt>Conversation</dt><dd data-readiness-session>Not started</dd></div>
+        <div><dt>Mode</dt><dd data-voice-mode>Wake-word mode</dd></div>
+        <div><dt>Session</dt><dd data-voice-session-timer>Say Echo to begin</dd></div>
+        <div><dt>Speaker</dt><dd data-voice-speaker-state>Not enrolled</dd></div>
+        <div><dt>Current agent</dt><dd data-current-agent>None</dd></div>
+        <div><dt>Current task</dt><dd data-current-task>None</dd></div>
+        <div><dt>Current tool</dt><dd data-current-tool>None</dd></div>
+        <div><dt>Current operation</dt><dd data-current-operation>Idle</dd></div>
+      </dl>
+    </section>
+    <section>
+      <div class="voice-panel-heading"><div><span class="eyebrow">Behavior</span><h3>Conversation controls</h3></div><a href="{% url 'workspace' 'settings' %}#voice">Settings</a></div>
+      <label class="voice-setting-row voice-setting-select"><span><strong>Speech recognition</strong><small>Choose browser recognition or a configured provider.</small></span><select data-voice-setting="speech_to_text_provider" aria-label="Speech recognition provider">{% for provider in voice.providers %}{% if provider.speech_to_text %}<option value="{{ provider.identifier }}" {% if voice.profile.speech_to_text_provider == provider.identifier %}selected{% endif %} {% if provider.requires_configuration and not provider.configured %}disabled{% endif %}>{{ provider.display_name }}{% if provider.requires_configuration and not provider.configured %} · not configured{% endif %}</option>{% endif %}{% endfor %}</select></label>
+      <label class="voice-setting-row voice-setting-select"><span><strong>Speech output</strong><small>Choose the voice used for spoken responses.</small></span><select data-voice-setting="text_to_speech_provider" aria-label="Speech output provider">{% for provider in voice.providers %}{% if provider.text_to_speech %}<option value="{{ provider.identifier }}" {% if voice.profile.text_to_speech_provider == provider.identifier %}selected{% endif %} {% if provider.requires_configuration and not provider.configured %}disabled{% endif %}>{{ provider.display_name }}{% if provider.requires_configuration and not provider.configured %} · not configured{% endif %}</option>{% endif %}{% endfor %}</select></label>
+      <label class="voice-setting-row voice-setting-select"><span><strong>Language</strong><small>BCP 47 language used for recognition and speech.</small></span><input type="text" value="{{ voice.profile.language }}" data-voice-setting="language" maxlength="32" aria-label="Voice language"></label>
+      <label class="voice-setting-row voice-setting-select"><span><strong>Speaking rate</strong><small>Adjust the pace of browser and provider speech.</small></span><input type="range" min="0.5" max="2" step="0.05" value="{{ voice.profile.speaking_rate }}" data-voice-setting="speaking_rate" aria-label="Speaking rate"></label>
+      <label class="voice-setting-row"><span><strong>Speak responses</strong><small>Use the configured voice output.</small></span><input type="checkbox" data-voice-setting="auto_speak" {% if voice.profile.auto_speak %}checked{% endif %}></label>
+      <label class="voice-setting-row"><span><strong>Continuous listening</strong><small>Resume listening after Echo speaks.</small></span><input type="checkbox" data-voice-setting="continuous_listening" {% if voice.profile.continuous_listening %}checked{% endif %}></label>
+      <label class="voice-setting-row"><span><strong>Allow interruption</strong><small>Stop speech when you start talking or use the interrupt control.</small></span><input type="checkbox" data-voice-setting="barge_in_enabled" {% if voice.profile.barge_in_enabled %}checked{% endif %}></label>
+      <label class="voice-setting-row"><span><strong>Speaker awareness</strong><small>Use a probabilistic voice match to ignore commands from unrecognized nearby speakers. This is not a replacement for sensitive-action approval.</small></span><input type="checkbox" data-voice-setting="speaker_identification_enabled" {% if voice.profile.speaker_identification_enabled %}checked{% endif %}></label>
+      <label class="voice-setting-row"><span><strong>Reject unrecognized speakers</strong><small>When speaker awareness is enabled, only recognized speech can execute commands.</small></span><input type="checkbox" data-voice-setting="reject_unrecognized_speakers" {% if voice.profile.reject_unrecognized_speakers %}checked{% endif %}></label>
+      <label class="voice-setting-row"><span><strong>Voice history</strong><small>Retain voice transcripts in conversation history. Raw microphone audio is not stored unless Save audio is explicitly enabled.</small></span><input type="checkbox" data-voice-setting="voice_history_enabled" {% if voice.profile.voice_history_enabled %}checked{% endif %}></label>
+      <label class="voice-setting-row voice-setting-select"><span><strong>Transcript retention</strong><small>Days to retain voice transcript history. Use 0 for session-only retention.</small></span><input type="number" min="0" max="365" value="{{ voice.profile.transcript_retention_days }}" data-voice-setting="transcript_retention_days" aria-label="Transcript retention days"></label>
+      <label class="voice-setting-row voice-setting-select"><span><strong>Active session limit</strong><small>Active command mode returns to wake-word listening after this much inactivity, up to 60 minutes.</small></span><input type="number" min="1" max="60" value="{{ voice.profile.active_session_minutes }}" data-voice-setting="active_session_minutes" aria-label="Active voice session minutes"></label>
+      <div class="voice-setting-row"><span><strong>Authorized speaker</strong><small data-speaker-enrollment-status>Enrollment uses derived audio features only; no enrollment recording is kept.</small></span><span class="voice-inline-actions"><button type="button" class="quiet-action js-enroll-speaker">Add voice sample</button><button type="button" class="quiet-action js-clear-speaker">Clear</button></span></div>
+      <div class="voice-setting-row"><span><strong>Clear voice data</strong><small>Delete stored voice sessions, transcripts, synthesis records, temporary audio records, and voice events.</small></span><button type="button" class="quiet-action js-clear-voice-data">Clear voice data</button></div>
+    </section>
+    <section>
+      <div class="voice-panel-heading"><div><span class="eyebrow">History</span><h3>Recent sessions</h3></div><span>{{ voice.sessions|length }}</span></div>
+      <div class="voice-session-history">{% for item in voice.sessions %}<button type="button" data-load-voice-session="{{ item.id }}"><span class="session-state is-{{ item.state }}"></span><span><strong>{{ item.title }}</strong><small>{{ item.turn_count }} turns · {{ item.state|title }}</small></span><svg><use href="{% static 'icons.svg' %}#chevron-right"></use></svg></button>{% empty %}<div class="voice-history-empty">Your voice conversations will remain available here.</div>{% endfor %}</div>
+    </section>
+  </aside>
+</section>

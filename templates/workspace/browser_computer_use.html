@@ -1,0 +1,65 @@
+{% load static %}
+<section class="computer-use-workspace" data-computer-use-operations>
+  <div class="computer-use-primary">
+    <div class="browser-live-header">
+      <div>
+        <span class="eyebrow">Observe · act · verify</span>
+        <h2>Computer-use workspace</h2>
+        <p>Echo uses live page structure first, visual evidence when needed, and verifies each action before reporting success.</p>
+      </div>
+      <span class="browser-session-state is-{{ computer_use.current_session.status|default:'idle' }}"><i></i>{{ computer_use.current_session.status|default:'No session'|title }}</span>
+    </div>
+
+    <div class="browser-live-surface">
+      <div class="browser-chrome-line">
+        <span class="browser-dots"><i></i><i></i><i></i></span>
+        <div class="browser-location"><svg><use href="{% static 'icons.svg' %}#shield"></use></svg><span data-browser-url>{{ computer_use.current_session.url|default:'A controlled browser session will appear here when Echo starts one.' }}</span></div>
+      </div>
+      {% if computer_use.latest_observation.screenshot_url %}
+        <a class="browser-snapshot" href="{{ computer_use.latest_observation.screenshot_url }}" target="_blank" rel="noopener" aria-label="Open latest verified browser observation"><img src="{{ computer_use.latest_observation.screenshot_url }}" alt="Latest controlled browser viewport captured by Echo"></a>
+      {% else %}
+        <div class="browser-calm-state"><span class="browser-observe-mark"><svg><use href="{% static 'icons.svg' %}#globe"></use></svg></span><strong>Ready to observe the web</strong><p>Ask Echo to open a site, inspect the current page, click a control, scroll, search, or process accessible media.</p></div>
+      {% endif %}
+      <form class="research-form computer-use-command js-command-form">
+        <svg><use href="{% static 'icons.svg' %}#command"></use></svg>
+        <input name="prompt" placeholder="Open a site, inspect this page, click a control, watch accessible media…" autocomplete="off">
+        <input type="hidden" name="section" value="browser">
+        <button type="submit">Run <svg><use href="{% static 'icons.svg' %}#arrow-right"></use></svg></button>
+      </form>
+    </div>
+
+    <section class="operation-field" aria-labelledby="operation-field-title">
+      <div class="field-heading"><div><span class="eyebrow">Independent execution</span><h3 id="operation-field-title">Computer-use operations</h3></div><span class="operation-live-indicator"><i></i><span data-operation-summary>{% if computer_use.active_operations %}{{ computer_use.active_operations|length }} active{% else %}Ready{% endif %}</span></span></div>
+      <div class="operation-stream" data-operation-stream aria-live="polite">
+        {% for item in computer_use.operations %}
+          <article class="operation-row is-{{ item.status }}" data-operation-id="{{ item.id }}">
+            <div class="operation-state"><span><i></i></span><small data-operation-status>{{ item.status|title }}</small></div>
+            <div class="operation-copy"><strong>{{ item.request }}</strong><p data-operation-detail>{{ item.current_operation|default:item.error|default:'Queued for execution' }}</p><div class="operation-progress" role="progressbar" aria-label="Operation progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ item.progress }}"><i style="--progress:{{ item.progress }}%"></i></div></div>
+            <div class="operation-actions">
+              {% if item.status == 'waiting_user' %}<button type="button" class="secondary-action compact" data-operation-resume="{{ item.id }}">Resume</button>{% endif %}
+              {% if item.cancellable and item.status != 'completed' and item.status != 'failed' and item.status != 'cancelled' %}<button type="button" class="icon-button" data-operation-cancel="{{ item.id }}" aria-label="Cancel computer-use operation"><svg><use href="{% static 'icons.svg' %}#close"></use></svg></button>{% endif %}
+            </div>
+          </article>
+        {% empty %}
+          <div class="operation-empty"><strong>No computer-use operation is running.</strong><p>Try “Open Wikipedia and summarize this page” or “Scroll until you find the API section.”</p></div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  <aside class="computer-use-evidence">
+    <section>
+      <span class="eyebrow">Current evidence</span>
+      <h3>{{ computer_use.latest_observation.title|default:'No observation yet' }}</h3>
+      {% if computer_use.latest_observation %}<p>{{ computer_use.latest_observation.visible_text|truncatechars:520 }}</p><small>Observed {{ computer_use.latest_observation.observed_at|timesince }} ago</small>{% else %}<p>DOM, accessibility structure, viewport state, and screenshots appear only after Echo has actually observed a page.</p>{% endif %}
+    </section>
+    <section>
+      <div class="evidence-heading"><span class="eyebrow">Verified actions</span><small>{{ computer_use.recent_actions|length }} recent</small></div>
+      <div class="evidence-log">{% for item in computer_use.recent_actions %}<div><span class="evidence-verdict {% if item.verified %}is-verified{% endif %}"><svg><use href="{% static 'icons.svg' %}#{% if item.verified %}check{% else %}alert{% endif %}"></use></svg></span><p><strong>{{ item.action|title }}</strong><small>{% if item.verified %}Verified{% elif item.error %}{{ item.error|truncatechars:90 }}{% else %}{{ item.status|title }}{% endif %}</small></p></div>{% empty %}<p class="evidence-empty">No browser actions have been recorded yet.</p>{% endfor %}</div>
+    </section>
+    <section>
+      <div class="evidence-heading"><span class="eyebrow">Media intelligence</span><small>Evidence-bound</small></div>
+      {% for item in computer_use.media|slice:':2' %}<div class="media-evidence"><strong>{{ item.status|title }}</strong><p>{{ item.summary|default:'Accessible evidence was insufficient for a reliable summary.'|truncatechars:220 }}</p><small>{{ item.confidence|floatformat:2 }} confidence</small></div>{% empty %}<p class="evidence-empty">Media summaries appear only after Echo actually processes accessible captions, text, or rendered visual frames.</p>{% endfor %}
+    </section>
+  </aside>
+</section>

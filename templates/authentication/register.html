@@ -1,0 +1,28 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}Create your Echo workspace{% endblock %}
+{% block body_class %}auth-experience{% endblock %}
+{% block body %}
+<main class="auth-shell" id="main-content">
+  <section class="auth-story auth-story-register" aria-labelledby="echo-intro">
+    <div class="auth-brand"><span class="echo-mark" aria-hidden="true">E</span><span>Echo</span></div>
+    <div class="auth-ambient" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="auth-story-copy"><div class="status-whisper"><span class="status-dot"></span> A workspace that learns with you</div><h1 id="echo-intro">Begin with intent.<br><span>Build with intelligence.</span></h1><p>Create one secure place for your knowledge, decisions, projects, and autonomous workflows.</p></div>
+    <div class="auth-principles" aria-hidden="true"><span>Private by design</span><span>Context you control</span><span>Keyboard first</span></div>
+  </section>
+  <section class="auth-panel">
+    <div class="auth-panel-inner wide">
+      <div class="mobile-auth-brand"><span class="echo-mark">E</span><span>Echo</span></div>
+      <div class="auth-heading"><span class="eyebrow">Create workspace</span><h2>Meet your AI operating system</h2><p>Set up your identity. Echo will shape itself around your work.</p></div>
+      {% if errors %}<div class="form-alert" role="alert"><svg><use href="{% static 'icons.svg' %}#alert"></use></svg><div>{{ errors }}</div></div>{% endif %}
+      <form method="post" class="auth-form" data-loading-form>
+        {% csrf_token %}
+        <div class="form-pair"><label><span>First name</span><input name="first_name" autocomplete="given-name" placeholder="First name"></label><label><span>Last name</span><input name="last_name" autocomplete="family-name" placeholder="Last name"></label></div>
+        <label><span>Work email</span><input type="email" name="email" autocomplete="email" placeholder="you@company.com" required></label>
+        <label><span>Password</span><input type="password" name="password" autocomplete="new-password" minlength="12" placeholder="12 characters or more" required><small>Use at least 12 characters. Avoid common or personal phrases.</small></label>
+        <button class="primary-action full" type="submit"><span>Create my workspace</span><svg><use href="{% static 'icons.svg' %}#arrow-right"></use></svg></button>
+      </form>
+      <p class="auth-switch">Already have a workspace? <a href="/login/">Sign in</a></p>
+    </div>
+  </section>
+</main>
+{% endblock %}

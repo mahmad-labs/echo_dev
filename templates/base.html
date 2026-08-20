@@ -1,0 +1,21 @@
+{% load static %}<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0b0d12">
+  <title>{% block title %}Echo · AI Operating System{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/echo.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  {% block body %}
+  <main id="main-content">{% block content %}{% endblock %}</main>
+  {% endblock %}
+  <div class="toast-region" aria-live="polite" aria-atomic="true" id="toast-region"></div>
+  <script src="{% static 'js/echo.js' %}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

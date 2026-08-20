@@ -1,0 +1,15 @@
+{% load static %}
+<div class="voice-console-backdrop" id="voice-console" hidden>
+  <section class="voice-console" role="dialog" aria-modal="true" aria-labelledby="voice-console-title" data-voice-workspace>
+    <header><div><span class="voice-state-dot" data-voice-state-dot></span><span><small>Echo Voice</small><strong data-voice-state-label>Starting</strong></span></div><button class="icon-button js-close-voice" type="button" aria-label="Close voice conversation"><svg><use href="{% static 'icons.svg' %}#close"></use></svg></button></header>
+    <div class="voice-console-body">
+      <div class="voice-mini-presence" data-voice-visual-state="starting"><span class="mini-voice-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><button type="button" class="voice-primary-control compact js-voice-toggle" aria-label="Start listening"><svg><use href="{% static 'icons.svg' %}#mic"></use></svg></button></div>
+      <h2 id="voice-console-title" data-voice-prompt>Talk to Echo</h2>
+      <p data-voice-guidance>Echo Voice is initializing.</p>
+      <div class="console-live-transcript"><span>Transcript</span><p data-live-transcript>Nothing heard yet.</p></div>
+      <div class="voice-turn-stream compact" data-voice-turn-stream></div>
+      <form class="voice-text-composer js-voice-text-form"><label class="sr-only" for="voice-console-text">Type instead</label><textarea id="voice-console-text" rows="1" placeholder="Type instead…"></textarea><button type="submit"><svg><use href="{% static 'icons.svg' %}#arrow-up"></use></svg></button></form>
+    </div>
+    <footer><span data-microphone-status>Voice starting</span><div class="voice-lifecycle-controls"><button type="button" class="quiet-action js-voice-toggle">Activate Voice</button><button type="button" class="quiet-action js-voice-disable" disabled>Disable Voice</button><button type="button" class="quiet-action danger-action js-voice-shutdown" disabled>Shutdown Voice</button></div></footer>
+  </section>
+</div>

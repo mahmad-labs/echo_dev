@@ -1,0 +1,22 @@
+[Unit]
+Description=Echo Enterprise Celery worker
+After=network-online.target redis-server.service postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=echo
+Group=echo
+WorkingDirectory=/opt/echo/current
+EnvironmentFile=/etc/echo/echo.env
+ExecStart=/opt/echo/venv/bin/celery -A config worker --loglevel=INFO --concurrency=4
+Restart=on-failure
+RestartSec=5
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/echo/current/media /var/log/echo
+
+[Install]
+WantedBy=multi-user.target

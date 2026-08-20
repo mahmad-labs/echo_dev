@@ -1,0 +1,106 @@
+{% load static %}
+<section class="home-command-center" aria-labelledby="home-command-title">
+  <div class="home-command-plane">
+    <div class="command-ambient" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="home-echo-presence" data-home-presence>
+      <div class="home-presence-mark" aria-hidden="true"><i></i><span></span></div>
+      <div>
+        <span class="home-presence-label"><i></i> Echo · <b data-voice-state-label>Ready</b></span>
+        <small data-microphone-status>Microphone idle</small>
+      </div>
+    </div>
+    <div class="home-command-copy">
+      <span class="eyebrow">Intelligent operating environment</span>
+      <h2 id="home-command-title">Tell Echo what you want to move forward.</h2>
+      <p>Speak, type, attach context, or issue a command. Echo routes the request into the right project, task, workflow, knowledge, or conversation system.</p>
+    </div>
+    <form class="home-command-composer js-command-form" data-placement="home-command">
+      <label class="sr-only" for="hero-command">Command Echo</label>
+      <textarea id="hero-command" name="prompt" rows="1" placeholder="Analyze a file, plan my day, continue a project, research a topic…" autocomplete="off"></textarea>
+      <input type="hidden" name="section" value="home">
+      <div class="home-composer-actions">
+        <div class="home-input-tools">
+          <button type="button" class="home-tool-button js-file-picker" aria-label="Attach files to Echo"><svg><use href="{% static 'icons.svg' %}#paperclip"></use></svg><span>Files</span></button>
+          <button type="button" class="home-tool-button js-open-voice" aria-label="Start a voice conversation"><svg><use href="{% static 'icons.svg' %}#mic"></use></svg><span>Voice</span></button>
+          <span class="home-context-state"><svg><use href="{% static 'icons.svg' %}#memory"></use></svg>{{ counts.memory|default:0 }} memories · {{ counts.knowledge|default:0 }} knowledge records</span>
+        </div>
+        <button class="home-send-command" type="submit" aria-label="Send command to Echo"><span>Run</span><svg><use href="{% static 'icons.svg' %}#arrow-up"></use></svg></button>
+      </div>
+    </form>
+    <div class="home-suggestion-runway" aria-label="Contextual suggestions">
+      {% for item in home.suggestions %}<button class="home-suggestion js-use-suggestion" type="button" data-prompt="{{ item.prompt }}"><svg><use href="{% static 'icons.svg' %}#{{ item.icon }}"></use></svg><span>{{ item.label }}</span><svg class="suggestion-arrow"><use href="{% static 'icons.svg' %}#arrow-up-right"></use></svg></button>{% endfor %}
+    </div>
+    <div class="home-command-result" id="home-command-result" hidden aria-live="polite"></div>
+  </div>
+
+  <aside class="attention-lane" aria-labelledby="attention-title">
+    <div class="attention-heading"><div><span class="eyebrow">Requires you</span><h3 id="attention-title">Attention queue</h3></div>{% if home.attention %}<span>{{ home.attention|length }}</span>{% endif %}</div>
+    {% if home.attention %}
+      <div class="attention-stream">
+        {% for item in home.attention %}<a href="{{ item.url }}" class="attention-item">
+          <span class="attention-icon"><svg><use href="{% static 'icons.svg' %}#{{ item.icon }}"></use></svg></span>
+          <span><small>{{ item.reason }}</small><strong>{{ item.title }}</strong><em>{{ item.kind }} · {{ item.updated_at|timesince }} ago</em></span>
+          <svg class="attention-arrow"><use href="{% static 'icons.svg' %}#chevron-right"></use></svg>
+        </a>{% endfor %}
+      </div>
+      <button class="attention-command js-use-suggestion" data-prompt="Show me everything requiring my attention and explain the safest next action." type="button"><svg><use href="{% static 'icons.svg' %}#spark"></use></svg>Ask Echo to triage</button>
+    {% else %}
+      <div class="calm-attention-state"><span class="calm-ring"><svg><use href="{% static 'icons.svg' %}#check"></use></svg></span><strong>Nothing needs intervention</strong><p>Approvals, errors, permissions, and blocked work will surface here automatically.</p></div>
+    {% endif %}
+  </aside>
+</section>
+
+<section class="operating-field" aria-label="Current Echo workspace state">
+  <div class="operating-primary">
+    <div class="field-heading"><div><span class="eyebrow">In motion</span><h2>Active work</h2></div><a href="{% url 'workspace' 'notifications' %}">Full activity <svg><use href="{% static 'icons.svg' %}#arrow-right"></use></svg></a></div>
+    {% if home.active_work %}
+      <div class="active-work-stream">
+        {% for item in home.active_work %}<article class="active-work-row">
+          <span class="work-state-symbol is-{{ item.status }}"><svg><use href="{% static 'icons.svg' %}#{{ item.icon }}"></use></svg><i></i></span>
+          <div><small>{{ item.type }} · {{ item.status|title }}</small><strong>{{ item.title }}</strong><p>{{ item.detail }}</p></div>
+          <span class="work-motion" aria-hidden="true"><i></i><i></i><i></i></span>
+        </article>{% endfor %}
+      </div>
+    {% else %}
+      <div class="calm-work-state"><div class="calm-line"><i></i></div><div><strong>Echo is ready</strong><p>No workflows, agents, research jobs, or model requests are running.</p></div></div>
+    {% endif %}
+  </div>
+
+  <div class="operating-secondary">
+    <section class="focus-thread" aria-labelledby="focus-title">
+      <div class="field-heading compact"><div><span class="eyebrow">Execution</span><h2 id="focus-title">What matters next</h2></div><a href="{% url 'workspace' 'tasks' %}">Tasks</a></div>
+      {% if home.active_tasks %}
+        <ol class="focus-sequence">
+          {% for item in home.active_tasks %}<li id="record-{{ item.id }}"><span>{% if forloop.counter < 10 %}0{% endif %}{{ forloop.counter }}</span><a href="{% url 'workspace' 'tasks' %}#record-{{ item.id }}"><strong>{{ item.title }}</strong><small>{{ item.category|default:'Active task' }} · {{ item.updated_at|timesince }} ago</small></a><button type="button" class="focus-plan js-use-suggestion" data-prompt="Help me complete {{ item.title }}" aria-label="Ask Echo about {{ item.title }}"><svg><use href="{% static 'icons.svg' %}#spark"></use></svg></button></li>{% endfor %}
+        </ol>
+      {% else %}
+        <div class="field-empty"><strong>Your execution queue is clear.</strong><button class="js-use-suggestion" data-prompt="Create a task to " type="button">Create with Echo</button></div>
+      {% endif %}
+    </section>
+
+    <section class="project-thread" aria-labelledby="project-thread-title">
+      <div class="field-heading compact"><div><span class="eyebrow">Continuity</span><h2 id="project-thread-title">Projects in focus</h2></div><a href="{% url 'workspace' 'projects' %}">Projects</a></div>
+      {% if home.projects %}<div class="project-continuum">{% for item in home.projects %}<a href="{% url 'workspace' 'projects' %}#record-{{ item.id }}"><span class="project-index">{{ forloop.counter|stringformat:'02d' }}</span><span><strong>{{ item.title }}</strong><small>{{ item.status|title }}{% if item.progress %} · {{ item.progress }}%{% endif %}</small></span><i style="--project-progress:{{ item.progress|default:0 }}%"></i></a>{% endfor %}</div>{% else %}<div class="field-empty"><strong>No active projects yet.</strong><a href="{% url 'workspace' 'projects' %}">Start a project</a></div>{% endif %}
+    </section>
+  </div>
+</section>
+
+<section class="continuity-field" aria-label="Recent context and launch points">
+  <div class="continuity-column">
+    <div class="field-heading compact"><div><span class="eyebrow">Resume</span><h2>Recent conversations</h2></div><a href="{% url 'workspace' 'chat' %}">Open chat</a></div>
+    <div class="continuity-list">{% for item in home.conversations %}<a href="{% url 'workspace' 'chat' %}#record-{{ item.id }}"><svg><use href="{% static 'icons.svg' %}#message"></use></svg><span><strong>{{ item.title }}</strong><small>{{ item.updated_at|timesince }} ago</small></span><svg><use href="{% static 'icons.svg' %}#arrow-up-right"></use></svg></a>{% empty %}<div class="continuity-empty">Your first conversation will appear here.</div>{% endfor %}</div>
+  </div>
+  <div class="continuity-column">
+    <div class="field-heading compact"><div><span class="eyebrow">Context</span><h2>Recent documents</h2></div><a href="{% url 'workspace' 'documents' %}">Document studio</a></div>
+    <div class="continuity-list">{% for item in home.documents %}<a href="{% url 'workspace' 'documents' %}#record-{{ item.id }}"><svg><use href="{% static 'icons.svg' %}#document"></use></svg><span><strong>{{ item.title }}</strong><small>{{ item.status|title }} · {{ item.updated_at|timesince }} ago</small></span><svg><use href="{% static 'icons.svg' %}#arrow-up-right"></use></svg></a>{% empty %}<button class="continuity-empty js-file-picker" type="button">Drop or choose a file to create working context.</button>{% endfor %}</div>
+  </div>
+  <div class="continuity-column launch-column">
+    <div class="field-heading compact"><div><span class="eyebrow">Launch</span><h2>Capabilities</h2></div><button class="js-open-command" type="button">All</button></div>
+    <div class="capability-launcher">
+      <button class="js-open-voice" type="button"><span><svg><use href="{% static 'icons.svg' %}#mic"></use></svg></span><strong>Voice</strong><small>Talk with Echo</small></button>
+      <button class="js-use-suggestion" data-prompt="Research " type="button"><span><svg><use href="{% static 'icons.svg' %}#globe"></use></svg></span><strong>Research</strong><small>Search the web</small></button>
+      <a href="{% url 'workspace' 'workflows' %}"><span><svg><use href="{% static 'icons.svg' %}#workflow"></use></svg></span><strong>Workflows</strong><small>Run automation</small></a>
+      <a href="{% url 'workspace' 'knowledge' %}"><span><svg><use href="{% static 'icons.svg' %}#knowledge"></use></svg></span><strong>Knowledge</strong><small>Search context</small></a>
+    </div>
+  </div>
+</section>
